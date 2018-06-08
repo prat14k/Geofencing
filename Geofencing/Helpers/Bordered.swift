@@ -13,7 +13,7 @@ protocol Bordered { }
 extension Bordered where Self: UIView {
     
     func addBorder() {
-        layer.borderColor = UIColor(red: 247.0/255.0, green: 247.0/255.0, blue: 247.0/255.0, alpha: 1.0).cgColor
+        layer.borderColor = UIColor(red: 221.0/255.0, green: 221.0/255.0, blue: 221.0/255.0, alpha: 1.0).cgColor
         layer.borderWidth = 0.7
     }
     
