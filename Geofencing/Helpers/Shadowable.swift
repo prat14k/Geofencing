@@ -17,8 +17,7 @@ extension Shadowable where Self: UIView {
         layer.shadowRadius = 0.7
         layer.shadowOpacity = 0.3
     }
-    
-}
 
+}
 
 extension UIView: Shadowable { }

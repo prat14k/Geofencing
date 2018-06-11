@@ -10,6 +10,7 @@ import UIKit
 import CoreLocation
 import MapKit
 
+
 class PinAnnotation: NSObject, MKAnnotation {
 
     var title: String?

@@ -18,13 +18,15 @@ protocol GeofenceSaveDelegate: class {
 
 class AddRegionViewController: UIViewController {
 
-    var events: EventType = []
+    private var events: EventType = []
+    private var currentLocation: CLLocation!
+    private var selectedLocation: CLLocation!
     
     weak var delegate: GeofenceSaveDelegate?
     
-    @IBOutlet weak var mapView: MKMapView!
-    @IBOutlet weak var radiusTextField: UITextField!
-    @IBOutlet weak var noteTextView: UITextView! {
+    @IBOutlet weak private var mapView: MKMapView!
+    @IBOutlet weak private var radiusTextField: UITextField!
+    @IBOutlet weak private var noteTextView: UITextView! {
         didSet {
             noteTextView.addBorder()
             noteTextView.textContainerInset = UIEdgeInsets(top: 4, left: 4, bottom: 4, right: 4)
@@ -32,27 +34,24 @@ class AddRegionViewController: UIViewController {
         }
     }
     
-    @IBOutlet weak var entryMonitoringButton: UIButton! {
+    @IBOutlet weak private var entryMonitoringButton: UIButton! {
         didSet {
             entryMonitoringButton.setTitle(Fontello.outlinedCircleIcon, for: .normal)
         }
     }
-    @IBOutlet weak var exitMonitoringButton: UIButton! {
+    @IBOutlet weak private var exitMonitoringButton: UIButton! {
         didSet {
             exitMonitoringButton.setTitle(Fontello.outlinedCircleIcon, for: .normal)
         }
     }
     
-    @IBOutlet weak var userLocationBarButton: UIBarButtonItem! {
+    @IBOutlet weak private var userLocationBarButton: UIBarButtonItem! {
         didSet {
             set(title: Fontello.locationIcon, for: userLocationBarButton)
         }
     }
     
-    var currentLocation: CLLocation!
-    var selectedLocation: CLLocation!
-    
-    lazy var locationManager : CLLocationManager = {
+    lazy private var locationManager: CLLocationManager = {
         let manager = CLLocationManager()
         manager.desiredAccuracy = kCLLocationAccuracyBest
         manager.distanceFilter = 30
@@ -66,21 +65,30 @@ class AddRegionViewController: UIViewController {
 
 extension AddRegionViewController {
     
-    @IBAction func regionToMonitor(_ gesture: UITapGestureRecognizer) {
+    @IBAction private func regionToMonitor(_ gesture: UITapGestureRecognizer) {
         let touchLocation = gesture.location(in: mapView)
         let coordinate = mapView.convert(touchLocation, toCoordinateFrom: mapView)
         selectedLocation = CLLocation(latitude: coordinate.latitude, longitude: coordinate.longitude)
         updateMapAnnotation(coordinate: selectedLocation)
     }
     
-    @IBAction func saveRegionForMonitoring() {
-        guard !events.isEmpty, selectedLocation != nil, let radius = Double(radiusTextField.text ?? "0")
-        else { return presentAlert(title: "No monitoring point selected", message: "Please either select entry or exit monitoring states or both") }
-        
-        saveGeofenceInStorage(coordinate: selectedLocation.coordinate, radius: radius)
+    private func isUserInputValid() -> Bool {
+        guard !events.isEmpty, selectedLocation != nil,
+              let radius = Double(radiusTextField.text ?? "0"),
+              radius > 0
+        else {
+            presentAlert(title: "No monitoring point selected", message: "Please either select entry or exit monitoring states or both")
+            return false
+        }
+        return true
     }
     
-    func saveGeofenceInStorage(coordinate: CLLocationCoordinate2D, radius: Double) {
+    @IBAction private func saveRegionForMonitoring() {
+        guard isUserInputValid() else { return }
+        saveGeofenceInStorage(coordinate: selectedLocation.coordinate, radius: Double(radiusTextField.text ?? "0")!)
+    }
+    
+    private func saveGeofenceInStorage(coordinate: CLLocationCoordinate2D, radius: Double) {
         let geofenceRegion = GeofenceRegion(coordinate: selectedLocation.coordinate, radius: radius, eventType: events, note: noteTextView.text)
         do {
             try RealmService.shared.create(object: geofenceRegion)
@@ -97,7 +105,7 @@ extension AddRegionViewController {
 
 extension AddRegionViewController {
     
-    @IBAction func monitorEnteringRegion(_ sender: UIButton) {
+    @IBAction private func monitorEnteringRegion(_ sender: UIButton) {
         if events.contains(.entry) {
             events.remove(.entry)
             sender.setTitle(Fontello.outlinedCircleIcon, for: .normal)
@@ -107,7 +115,7 @@ extension AddRegionViewController {
         }
     }
     
-    @IBAction func monitorExitingRegion(_ sender: UIButton) {
+    @IBAction private func monitorExitingRegion(_ sender: UIButton) {
         if events.contains(.exit) {
             events.remove(.exit)
             sender.setTitle(Fontello.outlinedCircleIcon, for: .normal)
@@ -115,10 +123,6 @@ extension AddRegionViewController {
             events.insert(.exit)
             sender.setTitle(Fontello.filledCircleIcon, for: .normal)
         }
-    }
-    
-    @IBAction func closeViewController() {
-        navigationController?.popViewController(animated: true)
     }
     
 }
@@ -131,7 +135,7 @@ extension AddRegionViewController {
         locationAuthStatusConfigure()
     }
     
-    func locationAuthStatusConfigure() {
+    private func locationAuthStatusConfigure() {
         let status = CLLocationManager.authorizationStatus()
         if status == .notDetermined {
             locationManager.requestAlwaysAuthorization()
@@ -140,9 +144,13 @@ extension AddRegionViewController {
         }
     }
     
+    @IBAction private func closeViewController() {
+        navigationController?.popViewController(animated: true)
+    }
+    
 }
 
-extension AddRegionViewController : CLLocationManagerDelegate {
+extension AddRegionViewController: CLLocationManagerDelegate {
     
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         if let location = locations.first {
@@ -153,8 +161,7 @@ extension AddRegionViewController : CLLocationManagerDelegate {
     func locationManager(_ manager: CLLocationManager, didChangeAuthorization status: CLAuthorizationStatus) {
         if status == .notDetermined {
             locationManager.requestAlwaysAuthorization()
-        }
-        else if status == .authorizedAlways || status == .authorizedWhenInUse {
+        } else if status == .authorizedAlways || status == .authorizedWhenInUse {
             mapView.showsUserLocation = true
             locationManager.startUpdatingLocation()
         }
@@ -165,7 +172,7 @@ extension AddRegionViewController : CLLocationManagerDelegate {
 
 extension AddRegionViewController {
     
-    func updateMapAnnotation(coordinate: CLLocation) {
+    private func updateMapAnnotation(coordinate: CLLocation) {
         let annotation = MKPointAnnotation()
         mapView.removeAnnotations(mapView.annotations)
         annotation.coordinate = coordinate.coordinate
@@ -178,13 +185,14 @@ extension AddRegionViewController {
         barButton.title = title
     }
     
-    private func setMapRegion(forLocation location : CLLocation) {
+    private func setMapRegion(for location: CLLocation) {
         let zoomRegion = MKCoordinateRegion(center: CLLocationCoordinate2D(latitude: location.coordinate.latitude, longitude: location.coordinate.longitude), span: MKCoordinateSpan(latitudeDelta: 0.2, longitudeDelta: 0.2))
         mapView.setRegion(zoomRegion, animated: true)
     }
     
-    @IBAction func zoomToUserLocation() {
+    @IBAction private func zoomToUserLocation() {
         guard currentLocation != nil  else { return presentAlert(title: "Unable to get your location", message: "We are unable to get your location. Please check whether you have permitted for the location services or not") }
-        setMapRegion(forLocation: currentLocation)
+        setMapRegion(for: currentLocation)
     }
+    
 }

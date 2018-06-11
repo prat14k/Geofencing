@@ -17,14 +17,13 @@ class GeofencingViewController: UIViewController {
     
     private var currentLocation: CLLocation!
     
-    lazy private var locationManager : CLLocationManager = {
+    lazy private var locationManager: CLLocationManager = {
         let manager = CLLocationManager()
         manager.desiredAccuracy = kCLLocationAccuracyBest
         manager.distanceFilter = 30
         manager.delegate = self
         return manager
     }()
-    
     
     @IBOutlet weak private var userLocationBarButton: UIBarButtonItem! {
         didSet {
@@ -77,11 +76,21 @@ extension GeofencingViewController {
         }
     }
 
+}
+
+extension GeofencingViewController {
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         
         showGeofencedRegion(eventType: .both)
+    }
+    
+    private func showGeofencedRegion(eventType: EventType) {
+        geofencedMapView.removeOverlays(geofencedMapView.overlays)
+        geofencedMapView.removeAnnotations(geofencedMapView.annotations)
+        let regions = geofencedRegions.filter { $0.eventType.contains(eventType) }
+        addGeofencedRegionsToMap(regions: regions)
     }
     
     private func addGeofencedRegionsToMap(regions: [GeofenceRegion]) {
@@ -94,7 +103,9 @@ extension GeofencingViewController {
     
 }
 
-extension GeofencingViewController : CLLocationManagerDelegate {
+
+
+extension GeofencingViewController: CLLocationManagerDelegate {
     
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         if let location = locations.first {
@@ -130,8 +141,17 @@ extension GeofencingViewController {
     
     @IBAction private func zoomToUserLocation() {
         guard currentLocation != nil  else { return presentAlert(title: "Unable to get your location", message: "We are unable to get your location. Please check whether you have permitted for the location services or not") }
-        setMapRegion(forLocation: currentLocation.coordinate)
+        setMapRegion(for: currentLocation.coordinate)
     }
+    
+    private func setMapRegion(for location: CLLocationCoordinate2D) {
+        let zoomRegion = MKCoordinateRegion(center: location, span: MKCoordinateSpan(latitudeDelta: 0.4, longitudeDelta: 0.4))
+        geofencedMapView.setRegion(zoomRegion, animated: true)
+    }
+    
+}
+
+extension GeofencingViewController {
     
     @IBAction private func addRegion() {
         if CLLocationManager.authorizationStatus() == .authorizedAlways || CLLocationManager.authorizationStatus() == .authorizedWhenInUse {
@@ -151,22 +171,7 @@ extension GeofencingViewController {
     
 }
 
-extension GeofencingViewController {
-    
-    private func showGeofencedRegion(eventType: EventType) {
-        geofencedMapView.removeOverlays(geofencedMapView.overlays)
-        geofencedMapView.removeAnnotations(geofencedMapView.annotations)
-        let regions = geofencedRegions.filter { $0.eventType.contains(eventType) }
-        addGeofencedRegionsToMap(regions: regions)
-    }
-    
-    
-    private func setMapRegion(forLocation location : CLLocationCoordinate2D) {
-        let zoomRegion = MKCoordinateRegion(center: location, span: MKCoordinateSpan(latitudeDelta: 0.4, longitudeDelta: 0.4))
-        geofencedMapView.setRegion(zoomRegion, animated: true)
-    }
-    
-}
+
 
 
 extension GeofencingViewController: GeofenceSaveDelegate {
@@ -190,13 +195,6 @@ extension GeofencingViewController: GeofenceSaveDelegate {
 
 extension GeofencingViewController {
     
-    private func geofence(region: GeofenceRegion) -> CLCircularRegion {
-        let circularRegion = CLCircularRegion(center: region.location.coordinate, radius: region.radius, identifier: region.identifier.uuidString)
-        circularRegion.notifyOnEntry = region.eventType.contains(.entry)
-        circularRegion.notifyOnExit = region.eventType.contains(.exit)
-        return circularRegion
-    }
-    
     private func startMonitoring(region: GeofenceRegion) {
         if !CLLocationManager.isMonitoringAvailable(for: CLCircularRegion.self) {
             presentAlert(title: "Error", message: "Geofencing is not supported")
@@ -209,6 +207,13 @@ extension GeofencingViewController {
         locationManager.startMonitoring(for: circularRegion)
     }
     
+    private func geofence(region: GeofenceRegion) -> CLCircularRegion {
+        let circularRegion = CLCircularRegion(center: region.location.coordinate, radius: region.radius, identifier: region.identifier.uuidString)
+        circularRegion.notifyOnEntry = region.eventType.contains(.entry)
+        circularRegion.notifyOnExit = region.eventType.contains(.exit)
+        return circularRegion
+    }
+    
     private func stopMonitoring(geofenceRegion: GeofenceRegion) {
         for region in locationManager.monitoredRegions {
             guard let circularRegion = region as? CLCircularRegion, circularRegion.identifier == geofenceRegion.identifier.uuidString else { continue }
@@ -218,14 +223,6 @@ extension GeofencingViewController {
 }
 
 extension GeofencingViewController {
-    
-    private func buttonForGeofenceRegionRemoval() -> UIButton {
-        let calloutRemoveButton = UIButton(type: .custom)
-        calloutRemoveButton.frame = CGRect(x: 0, y: 0, width: 20, height: 20)
-        calloutRemoveButton.setTitle("X", for: .normal)
-        calloutRemoveButton.setTitleColor(UIColor.black, for: .normal)
-        return calloutRemoveButton
-    }
     
     private func removeCircleOverlay(for geofenceRegion: GeofenceRegion) {
         for case let circleOverlay as MKCircle in geofencedMapView.overlays {
@@ -241,6 +238,15 @@ extension GeofencingViewController {
         let circle = MKCircle(center: region.location.coordinate, radius: region.radius)
         geofencedMapView.add(circle)
     }
+    
+    private func buttonForGeofenceRegionRemoval() -> UIButton {
+        let calloutRemoveButton = UIButton(type: .custom)
+        calloutRemoveButton.frame = CGRect(x: 0, y: 0, width: 20, height: 20)
+        calloutRemoveButton.setTitle("X", for: .normal)
+        calloutRemoveButton.setTitleColor(UIColor.black, for: .normal)
+        return calloutRemoveButton
+    }
+    
 }
 
 
@@ -264,7 +270,7 @@ extension GeofencingViewController: MKMapViewDelegate {
               let (_, region) = geofencedRegions.geofenceRegion(identifier: geofenceAnnotation.identifier)
         else { return }
         
-        setMapRegion(forLocation: region.location.coordinate)
+        setMapRegion(for: region.location.coordinate)
     }
     
     func mapView(_ mapView: MKMapView, rendererFor overlay: MKOverlay) -> MKOverlayRenderer {
