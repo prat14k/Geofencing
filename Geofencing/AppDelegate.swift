@@ -8,6 +8,7 @@
 
 import UIKit
 import IQKeyboardManagerSwift
+import UserNotifications
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -22,6 +23,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
         removeNavBarBottomLine()
         IQKeyboardManager.shared.enable = true
+        registerNotifications()
         
         return true
     }
@@ -48,6 +50,24 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
     }
 
+    func registerNotifications() {
+        UNUserNotificationCenter.current().requestAuthorization(options: [.sound , .badge , .alert]) { [weak self] (granted, error) in
+            if let error = error {
+                print(error.localizedDescription)
+            } else {
+                print(granted)
+            }
+            UNUserNotificationCenter.current().delegate = self
+        }
+    }
 
 }
 
+
+extension AppDelegate:UNUserNotificationCenterDelegate {
+    
+    func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
+        completionHandler([.alert , .badge])
+    }
+    
+}

@@ -12,5 +12,6 @@ import Foundation
 enum StringLiterals {
     
     static let mapAnnotationViewReuseIdentifier = "mapAnnotationViewReuseIdentifier"
+    static let geofenceMonitoringNotificationRequest = "geofenceMonitoringNotificationRequest"
     
 }

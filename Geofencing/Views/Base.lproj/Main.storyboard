@@ -208,7 +208,7 @@
                                     <constraint firstItem="Pce-TJ-yeK" firstAttribute="trailing" secondItem="ndE-NN-Dih" secondAttribute="centerX" constant="-20" id="qbl-gb-qp7"/>
                                 </constraints>
                             </view>
-                            <mapView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" mapType="standard" translatesAutoresizingMaskIntoConstraints="NO" id="i9b-0h-7yl">
+                            <mapView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" mapType="standard" pitchEnabled="NO" showsUserLocation="YES" showsCompass="NO" translatesAutoresizingMaskIntoConstraints="NO" id="i9b-0h-7yl">
                                 <rect key="frame" x="0.0" y="64" width="375" height="378"/>
                                 <gestureRecognizers/>
                                 <connections>

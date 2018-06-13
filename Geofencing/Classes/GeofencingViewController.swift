@@ -11,25 +11,12 @@ import MapKit
 import CoreLocation
 
 
-class GeofencingViewController: UIViewController {
+
+class GeofencingViewController: BaseMapViewController {
 
     lazy private var geofencedRegions: [GeofenceRegion] = RealmService.shared.read(aClass: GeofenceRegion.self)
     
-    private var currentLocation: CLLocation!
     
-    lazy private var locationManager: CLLocationManager = {
-        let manager = CLLocationManager()
-        manager.desiredAccuracy = kCLLocationAccuracyBest
-        manager.distanceFilter = 30
-        manager.delegate = self
-        return manager
-    }()
-    
-    @IBOutlet weak private var userLocationBarButton: UIBarButtonItem! {
-        didSet {
-            set(title: Fontello.locationIcon, for: userLocationBarButton)
-        }
-    }
     @IBOutlet weak private var addRegionBarButton: UIBarButtonItem! {
         didSet {
             set(title: Fontello.plusIcon, for: addRegionBarButton)
@@ -47,11 +34,6 @@ class GeofencingViewController: UIViewController {
         }
     }
     
-    private func set(title: String, for barButton: UIBarButtonItem) {
-        barButton.setTitleTextAttributes([NSAttributedStringKey.foregroundColor: UIColor.black, NSAttributedStringKey.font: UIFont(name: Fontello.name, size: 15)!], for: .normal)
-        barButton.title = title
-    }
-    
 }
 
 extension GeofencingViewController {
@@ -62,20 +44,6 @@ extension GeofencingViewController {
         }
     }
     
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        locationAuthStatusConfigure()
-    }
-    
-    private func locationAuthStatusConfigure() {
-        let status = CLLocationManager.authorizationStatus()
-        if status == .notDetermined {
-            locationManager.requestAlwaysAuthorization()
-        } else if status == .authorizedAlways || status == .authorizedWhenInUse {
-            locationManager.startUpdatingLocation()
-        }
-    }
-
 }
 
 extension GeofencingViewController {
@@ -106,29 +74,21 @@ extension GeofencingViewController {
 
 
 
-extension GeofencingViewController: CLLocationManagerDelegate {
+extension GeofencingViewController: Notifiable {
     
-    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-        if let location = locations.first {
-            currentLocation = location
-        }
-    }
-    
-    func locationManager(_ manager: CLLocationManager, didChangeAuthorization status: CLAuthorizationStatus) {
-        if status == .notDetermined {
-            locationManager.requestAlwaysAuthorization()
-        } else if status == .authorizedAlways || status == .authorizedWhenInUse {
-            geofencedMapView.showsUserLocation = true
-            locationManager.startUpdatingLocation()
-        }
+    private func handleMonitoring(event: EventType, regionIdentifier: String) {
+        guard let uuid = UUID(uuidString: regionIdentifier),
+            let (index, geofenceRegion) = geofencedRegions.region(for: uuid)
+            else { return }
+        triggerNotification(title: "Region \(index+1) \(event.detail)", subtitle: "Radius \(geofenceRegion.radius)", description: geofenceRegion.note ?? "")
     }
     
     func locationManager(_ manager: CLLocationManager, didEnterRegion region: CLRegion) {
-        presentAlert(title: "Region Entered ", message: "\(region.identifier)")
+        handleMonitoring(event: .entry, regionIdentifier: region.identifier)
     }
     
     func locationManager(_ manager: CLLocationManager, didExitRegion region: CLRegion) {
-        presentAlert(title: "Region Exit ", message: "\(region.identifier)")
+        handleMonitoring(event: .exit, regionIdentifier: region.identifier)
     }
     
 }
@@ -184,7 +144,7 @@ extension GeofencingViewController: GeofenceSaveDelegate {
     }
     
     private func removeGeofence(identifier: UUID) {
-        guard let (index, region) = geofencedRegions.geofenceRegion(identifier: identifier)  else { return }
+        guard let (index, region) = geofencedRegions.region(for: identifier)  else { return }
         removeCircleOverlay(for: region)
         try? RealmService.shared.delete(object: region)
         stopMonitoring(geofenceRegion: region)
@@ -197,13 +157,12 @@ extension GeofencingViewController: GeofenceSaveDelegate {
 extension GeofencingViewController {
     
     private func startMonitoring(region: GeofenceRegion) {
-        if !CLLocationManager.isMonitoringAvailable(for: CLCircularRegion.self) {
-            presentAlert(title: "Error", message: "Geofencing is not supported")
-            return
-        }
-        if CLLocationManager.authorizationStatus() != .authorizedAlways {
-            presentAlert(title: "Warning", message: "Your geotification is saved but will only be activated once you grant Geotify permission to access the device location.")
-        }
+        guard CLLocationManager.isMonitoringAvailable(for: CLCircularRegion.self)
+        else { return presentAlert(title: "Error", message: "Geofencing is not supported") }
+        
+        guard CLLocationManager.authorizationStatus() == .authorizedAlways
+        else { return presentAlert(title: "Error", message: "Please grant the always location usage permission") }
+        
         let circularRegion = geofence(region: region)
         locationManager.startMonitoring(for: circularRegion)
     }
@@ -268,7 +227,7 @@ extension GeofencingViewController: MKMapViewDelegate {
 
     func mapView(_ mapView: MKMapView, didSelect view: MKAnnotationView) {
         guard let geofenceAnnotation = view.annotation as? PinAnnotation,
-              let (_, region) = geofencedRegions.geofenceRegion(identifier: geofenceAnnotation.identifier)
+              let (_, region) = geofencedRegions.region(for: geofenceAnnotation.identifier)
         else { return }
         
         setMapRegion(for: region.location.coordinate)

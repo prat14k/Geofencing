@@ -12,6 +12,8 @@
 		AB924B5620C9B7E300C11A8B /* ViewControllerExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB924B5520C9B7E300C11A8B /* ViewControllerExtension.swift */; };
 		AB9F0C5F20CA426A005DC2D6 /* PinAnnotation.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB9F0C5E20CA426A005DC2D6 /* PinAnnotation.swift */; };
 		AB9F0C6220CA475C005DC2D6 /* GeofenceRegion.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB9F0C6120CA475C005DC2D6 /* GeofenceRegion.swift */; };
+		ABA50C1320D18FFD0019F74E /* BaseMapViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = ABA50C1220D18FFD0019F74E /* BaseMapViewController.swift */; };
+		ABA50C1520D199D00019F74E /* Notifiable.swift in Sources */ = {isa = PBXBuildFile; fileRef = ABA50C1420D199D00019F74E /* Notifiable.swift */; };
 		ABC297D220C9469800B09FFB /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = ABC297D120C9469800B09FFB /* AppDelegate.swift */; };
 		ABC297D420C9469800B09FFB /* GeofencingViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = ABC297D320C9469800B09FFB /* GeofencingViewController.swift */; };
 		ABC297D720C9469800B09FFB /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = ABC297D520C9469800B09FFB /* Main.storyboard */; };
@@ -37,6 +39,8 @@
 		AB924B5520C9B7E300C11A8B /* ViewControllerExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewControllerExtension.swift; sourceTree = "<group>"; };
 		AB9F0C5E20CA426A005DC2D6 /* PinAnnotation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PinAnnotation.swift; sourceTree = "<group>"; };
 		AB9F0C6120CA475C005DC2D6 /* GeofenceRegion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeofenceRegion.swift; sourceTree = "<group>"; };
+		ABA50C1220D18FFD0019F74E /* BaseMapViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BaseMapViewController.swift; sourceTree = "<group>"; };
+		ABA50C1420D199D00019F74E /* Notifiable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Notifiable.swift; sourceTree = "<group>"; };
 		ABC297CE20C9469800B09FFB /* Geofencing.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Geofencing.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		ABC297D120C9469800B09FFB /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		ABC297D320C9469800B09FFB /* GeofencingViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeofencingViewController.swift; sourceTree = "<group>"; };
@@ -156,6 +160,7 @@
 			children = (
 				ABC297D320C9469800B09FFB /* GeofencingViewController.swift */,
 				ABC297ED20C96B4900B09FFB /* AddRegionViewController.swift */,
+				ABA50C1220D18FFD0019F74E /* BaseMapViewController.swift */,
 			);
 			path = Classes;
 			sourceTree = "<group>";
@@ -172,6 +177,7 @@
 		ABC297E920C9603B00B09FFB /* Helpers */ = {
 			isa = PBXGroup;
 			children = (
+				ABA50C1420D199D00019F74E /* Notifiable.swift */,
 				ABD4DC1920CA4B380096A2A7 /* RealmService.swift */,
 				ABC297E320C9511000B09FFB /* Shadowable.swift */,
 				ABC297F220C979F100B09FFB /* Bordered.swift */,
@@ -313,6 +319,8 @@
 				AB924B5620C9B7E300C11A8B /* ViewControllerExtension.swift in Sources */,
 				AB924B5420C9B7D600C11A8B /* AlertControllerExtension.swift in Sources */,
 				ABC297E420C9511000B09FFB /* Shadowable.swift in Sources */,
+				ABA50C1520D199D00019F74E /* Notifiable.swift in Sources */,
+				ABA50C1320D18FFD0019F74E /* BaseMapViewController.swift in Sources */,
 				ABD4DC1C20CA5E4B0096A2A7 /* Location.swift in Sources */,
 				ABC297D420C9469800B09FFB /* GeofencingViewController.swift in Sources */,
 				ABD4DC1A20CA4B380096A2A7 /* RealmService.swift in Sources */,

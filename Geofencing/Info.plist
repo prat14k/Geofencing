@@ -26,8 +26,6 @@
 	</array>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>Required for Geofencing</string>
-	<key>NSLocationAlwaysUsageDescription</key>
-	<string>Required for Geofencing</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Required for Geofencing</string>
 	<key>UILaunchStoryboardName</key>

@@ -16,10 +16,9 @@ protocol GeofenceSaveDelegate: class {
 }
 
 
-class AddRegionViewController: UIViewController {
+class AddRegionViewController: BaseMapViewController {
 
     private var events: EventType = []
-    private var currentLocation: CLLocation!
     private var selectedLocation: CLLocation!
     
     weak var delegate: GeofenceSaveDelegate?
@@ -44,20 +43,6 @@ class AddRegionViewController: UIViewController {
             exitMonitoringButton.setTitle(Fontello.outlinedCircleIcon, for: .normal)
         }
     }
-    
-    @IBOutlet weak private var userLocationBarButton: UIBarButtonItem! {
-        didSet {
-            set(title: Fontello.locationIcon, for: userLocationBarButton)
-        }
-    }
-    
-    lazy private var locationManager: CLLocationManager = {
-        let manager = CLLocationManager()
-        manager.desiredAccuracy = kCLLocationAccuracyBest
-        manager.distanceFilter = 30
-        manager.delegate = self
-        return manager
-    }()
     
 }
 
@@ -89,6 +74,7 @@ extension AddRegionViewController {
     }
     
     private func saveGeofenceInStorage(coordinate: CLLocationCoordinate2D, radius: Double) {
+        guard isLocationPermissionProvided  else { return presentAlert(title: "Location Premissions Denied", message: "Please provide the location permissions") }
         let geofenceRegion = GeofenceRegion(coordinate: selectedLocation.coordinate, radius: radius, eventType: events, note: noteTextView.text)
         do {
             try RealmService.shared.create(object: geofenceRegion)
@@ -130,41 +116,8 @@ extension AddRegionViewController {
 
 extension AddRegionViewController {
     
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        locationAuthStatusConfigure()
-    }
-    
-    private func locationAuthStatusConfigure() {
-        let status = CLLocationManager.authorizationStatus()
-        if status == .notDetermined {
-            locationManager.requestAlwaysAuthorization()
-        } else if status == .authorizedAlways || status == .authorizedWhenInUse {
-            locationManager.startUpdatingLocation()
-        }
-    }
-    
     @IBAction private func closeViewController() {
         navigationController?.popViewController(animated: true)
-    }
-    
-}
-
-extension AddRegionViewController: CLLocationManagerDelegate {
-    
-    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-        if let location = locations.first {
-            currentLocation = location
-        }
-    }
-    
-    func locationManager(_ manager: CLLocationManager, didChangeAuthorization status: CLAuthorizationStatus) {
-        if status == .notDetermined {
-            locationManager.requestAlwaysAuthorization()
-        } else if status == .authorizedAlways || status == .authorizedWhenInUse {
-            mapView.showsUserLocation = true
-            locationManager.startUpdatingLocation()
-        }
     }
     
 }
@@ -180,10 +133,6 @@ extension AddRegionViewController {
         mapView.addAnnotation(annotation)
     }
     
-    private func set(title: String, for barButton: UIBarButtonItem) {
-        barButton.setTitleTextAttributes([NSAttributedStringKey.foregroundColor: UIColor.black, NSAttributedStringKey.font: UIFont(name: Fontello.name, size: 15)!], for: .normal)
-        barButton.title = title
-    }
     
     private func setMapRegion(for location: CLLocation) {
         let zoomRegion = MKCoordinateRegion(center: CLLocationCoordinate2D(latitude: location.coordinate.latitude, longitude: location.coordinate.longitude), span: MKCoordinateSpan(latitudeDelta: 0.2, longitudeDelta: 0.2))
