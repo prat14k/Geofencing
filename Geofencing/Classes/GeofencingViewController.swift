@@ -89,6 +89,7 @@ extension GeofencingViewController {
     private func showGeofencedRegion(eventType: EventType) {
         geofencedMapView.removeOverlays(geofencedMapView.overlays)
         geofencedMapView.removeAnnotations(geofencedMapView.annotations)
+        guard eventType != .both  else { return addGeofencedRegionsToMap(regions: geofencedRegions) }
         let regions = geofencedRegions.filter { $0.eventType.contains(eventType) }
         addGeofencedRegionsToMap(regions: regions)
     }
