@@ -15,8 +15,8 @@ class BaseMapViewController: UIViewController, LocationManagerProtocol {
     var currentLocation: CLLocation!
     
     lazy var locationManager = create()
-    var isLocationPermissionProvided: Bool { return CLLocationManager.authorizationStatus() == .authorizedAlways }
-    
+    var isLocationAlwaysPermissionProvided: Bool { return CLLocationManager.authorizationStatus() == .authorizedAlways }
+    var isLocationWhenInUsePermissionProvided: Bool { return CLLocationManager.authorizationStatus() == .authorizedWhenInUse }
     
     @IBOutlet weak private var userLocationBarButton: UIBarButtonItem! {
         didSet {

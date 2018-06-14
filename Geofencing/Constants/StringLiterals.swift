@@ -12,6 +12,8 @@ import Foundation
 enum StringLiterals {
     
     static let mapAnnotationViewReuseIdentifier = "mapAnnotationViewReuseIdentifier"
-    static let geofenceMonitoringNotificationRequest = "geofenceMonitoringNotificationRequest"
+    static let unableToLocateError = "Unable to get your location"
+    static let internetConnectionProblem = "Unable to get your location due to slow/no internet or due to airplane mode."
+    static let permissionNotProvided = "Please provide us access to use the location services."
     
 }

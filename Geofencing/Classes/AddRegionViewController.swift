@@ -74,7 +74,7 @@ extension AddRegionViewController {
     }
     
     private func saveGeofenceInStorage(coordinate: CLLocationCoordinate2D, radius: Double) {
-        guard isLocationPermissionProvided  else { return presentAlert(title: "Location Premissions Denied", message: "Please provide the Always location permission") }
+        guard isLocationAlwaysPermissionProvided  else { return presentAlert(title: "Location Premissions Denied", message: "Please provide the Always location usage permission in the Settings app in order to save regions") }
         let geofenceRegion = GeofenceRegion(identifier: UUID().uuidString, coordinate: selectedLocation.coordinate, radius: radius, eventType: events, note: noteTextView.text)
         do {
             try RealmService.shared.create(object: geofenceRegion)
@@ -118,6 +118,7 @@ extension AddRegionViewController {
     
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         if let location = locations.first {
+            if currentLocation == nil { setMapRegion(for: location.coordinate) }
             currentLocation = location
             mapView.showsUserLocation = true
         }
@@ -141,14 +142,15 @@ extension AddRegionViewController {
     }
     
     
-    private func setMapRegion(for location: CLLocation) {
-        let zoomRegion = MKCoordinateRegion(center: CLLocationCoordinate2D(latitude: location.coordinate.latitude, longitude: location.coordinate.longitude), span: MKCoordinateSpan(latitudeDelta: 0.2, longitudeDelta: 0.2))
+    private func setMapRegion(for coordinate: CLLocationCoordinate2D) {
+        let zoomRegion = MKCoordinateRegion(center: coordinate, span: MKCoordinateSpan(latitudeDelta: 0.2, longitudeDelta: 0.2))
         mapView.setRegion(zoomRegion, animated: true)
     }
     
     @IBAction private func zoomToUserLocation() {
-        guard currentLocation != nil  else { return presentAlert(title: "Unable to get your location", message: "We are unable to get your location. Please check whether you have permitted for the location services or not") }
-        setMapRegion(for: currentLocation)
+        guard isLocationAlwaysPermissionProvided || isLocationWhenInUsePermissionProvided  else { return presentAlert(title: StringLiterals.unableToLocateError, message: StringLiterals.permissionNotProvided) }
+        guard currentLocation != nil  else { return presentAlert(title: StringLiterals.unableToLocateError, message: StringLiterals.internetConnectionProblem) }
+        setMapRegion(for: currentLocation.coordinate)
     }
     
 }

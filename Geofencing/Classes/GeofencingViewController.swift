@@ -80,12 +80,13 @@ extension GeofencingViewController {
     }
     
     @IBAction private func zoomToUserLocation() {
-        guard currentLocation != nil  else { return presentAlert(title: "Unable to get your location", message: "We are unable to get your location. Please check whether you have permitted for the location services or not") }
+        guard isLocationAlwaysPermissionProvided || isLocationWhenInUsePermissionProvided  else { return presentAlert(title: StringLiterals.unableToLocateError, message: StringLiterals.permissionNotProvided) }
+        guard currentLocation != nil  else { return presentAlert(title: StringLiterals.unableToLocateError, message: StringLiterals.internetConnectionProblem) }
         setMapRegion(for: currentLocation.coordinate)
     }
     
     private func setMapRegion(for location: CLLocationCoordinate2D) {
-        let zoomRegion = MKCoordinateRegion(center: location, span: MKCoordinateSpan(latitudeDelta: 0.4, longitudeDelta: 0.4))
+        let zoomRegion = MKCoordinateRegion(center: location, span: MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05))
         geofencedMapView.setRegion(zoomRegion, animated: true)
     }
     
@@ -95,14 +96,14 @@ extension GeofencingViewController {
     
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         if let location = locations.first {
+            if currentLocation == nil { setMapRegion(for: location.coordinate) }
             currentLocation = location
             geofencedMapView.showsUserLocation = true
         }
     }
     
     @IBAction private func addRegion() {
-        guard isLocationPermissionProvided  else { return presentAlert(title: "Location Premissions Denied", message: "Please provide the Always location permission") }
-        guard geofencedRegions.count <= 20  else { return presentAlert(title: "Max Geofencing count reached", message: "Please remove some regions") }
+        guard geofencedRegions.count <= 20  else { return presentAlert(title: "Max Geofencing count reached", message: "Please remove some regions in order to save more. Current limit is 20 max.") }
         performSegue(withIdentifier: SegueIdentifiers.addRegionVCSegue, sender: nil)
     }
     
@@ -144,10 +145,10 @@ extension GeofencingViewController {
     
     private func startMonitoring(region: GeofenceRegion) {
         guard CLLocationManager.isMonitoringAvailable(for: CLCircularRegion.self)
-        else { return presentAlert(title: "Error", message: "Geofencing is not supported") }
+        else { return presentAlert(title: "Error", message: "Geofencing is not supported in your device.") }
         
         guard CLLocationManager.authorizationStatus() == .authorizedAlways
-        else { return presentAlert(title: "Error", message: "Please grant the always location usage permission") }
+        else { return presentAlert(title: "Error", message: "Please grant the always location usage permission in the settings app") }
         
         let circularRegion = geofence(region: region)
         locationManager.startMonitoring(for: circularRegion)

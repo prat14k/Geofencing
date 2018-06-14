@@ -60,9 +60,9 @@ extension AppDelegate: CLLocationManagerDelegate, Notifiable {
     
     private func handleMonitoring(event: EventType, regionIdentifier: String) {
         let geofencedRegions = RealmService.shared.read(aClass: GeofenceRegion.self)
-        guard let (index, geofenceRegion) = geofencedRegions.region(for: regionIdentifier)
+        guard let (_, geofenceRegion) = geofencedRegions.region(for: regionIdentifier)
             else { return }
-        triggerNotification(title: "Region \(index+1) \(event.detail)", subtitle: "Radius \(geofenceRegion.radius)", description: geofenceRegion.note ?? "")
+        triggerNotification(title: "Region \(event.detail)", subtitle: "Radius \(geofenceRegion.radius)", description: geofenceRegion.note ?? "")
     }
     
     func locationManager(_ manager: CLLocationManager, didEnterRegion region: CLRegion) {
