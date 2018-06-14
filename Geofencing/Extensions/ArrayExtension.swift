@@ -10,7 +10,7 @@ import Foundation
 
 extension Array where Element: GeofenceRegion{
     
-    func region(for identifier: UUID) -> (Int, GeofenceRegion)? {
+    func region(for identifier: String) -> (Int, GeofenceRegion)? {
         let searchedIndex = index { $0.identifier == identifier }
         guard let index = searchedIndex else { return nil }
         return (index, self[index])

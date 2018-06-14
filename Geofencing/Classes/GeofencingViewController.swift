@@ -72,30 +72,9 @@ extension GeofencingViewController {
     
 }
 
-
-
-extension GeofencingViewController: Notifiable {
-    
-    private func handleMonitoring(event: EventType, regionIdentifier: String) {
-        guard let uuid = UUID(uuidString: regionIdentifier),
-            let (index, geofenceRegion) = geofencedRegions.region(for: uuid)
-            else { return }
-        triggerNotification(title: "Region \(index+1) \(event.detail)", subtitle: "Radius \(geofenceRegion.radius)", description: geofenceRegion.note ?? "")
-    }
-    
-    func locationManager(_ manager: CLLocationManager, didEnterRegion region: CLRegion) {
-        handleMonitoring(event: .entry, regionIdentifier: region.identifier)
-    }
-    
-    func locationManager(_ manager: CLLocationManager, didExitRegion region: CLRegion) {
-        handleMonitoring(event: .exit, regionIdentifier: region.identifier)
-    }
-    
-}
-
 extension GeofencingViewController {
     
-    private func addAnnotation(coordinate: CLLocationCoordinate2D, identifier: UUID, title: String?, subtitle: String?) {
+    private func addAnnotation(coordinate: CLLocationCoordinate2D, identifier: String, title: String?, subtitle: String?) {
         let annotation = PinAnnotation(identifier: identifier, coordinate: coordinate, title: title, subtitle: subtitle)
         geofencedMapView.addAnnotation(annotation)
     }
@@ -114,10 +93,17 @@ extension GeofencingViewController {
 
 extension GeofencingViewController {
     
-    @IBAction private func addRegion() {
-        if CLLocationManager.authorizationStatus() == .authorizedAlways || CLLocationManager.authorizationStatus() == .authorizedWhenInUse {
-            performSegue(withIdentifier: SegueIdentifiers.addRegionVCSegue, sender: nil)
+    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        if let location = locations.first {
+            currentLocation = location
+            geofencedMapView.showsUserLocation = true
         }
+    }
+    
+    @IBAction private func addRegion() {
+        guard isLocationPermissionProvided  else { return presentAlert(title: "Location Premissions Denied", message: "Please provide the Always location permission") }
+        guard geofencedRegions.count <= 20  else { return presentAlert(title: "Max Geofencing count reached", message: "Please remove some regions") }
+        performSegue(withIdentifier: SegueIdentifiers.addRegionVCSegue, sender: nil)
     }
     
     @IBAction private func regionCategoryIndexChanged(_ sender: UISegmentedControl) {
@@ -143,7 +129,7 @@ extension GeofencingViewController: GeofenceSaveDelegate {
         addCircleOnMap(region: region)
     }
     
-    private func removeGeofence(identifier: UUID) {
+    private func removeGeofence(identifier: String) {
         guard let (index, region) = geofencedRegions.region(for: identifier)  else { return }
         removeCircleOverlay(for: region)
         try? RealmService.shared.delete(object: region)
@@ -168,7 +154,7 @@ extension GeofencingViewController {
     }
     
     private func geofence(region: GeofenceRegion) -> CLCircularRegion {
-        let circularRegion = CLCircularRegion(center: region.location.coordinate, radius: region.radius, identifier: region.identifier.uuidString)
+        let circularRegion = CLCircularRegion(center: region.location.coordinate, radius: region.radius, identifier: region.identifier)
         circularRegion.notifyOnEntry = region.eventType.contains(.entry)
         circularRegion.notifyOnExit = region.eventType.contains(.exit)
         return circularRegion
@@ -176,7 +162,7 @@ extension GeofencingViewController {
     
     private func stopMonitoring(geofenceRegion: GeofenceRegion) {
         for region in locationManager.monitoredRegions {
-            guard let circularRegion = region as? CLCircularRegion, circularRegion.identifier == geofenceRegion.identifier.uuidString else { continue }
+            guard let circularRegion = region as? CLCircularRegion, circularRegion.identifier == geofenceRegion.identifier else { continue }
             locationManager.stopMonitoring(for: circularRegion)
         }
     }

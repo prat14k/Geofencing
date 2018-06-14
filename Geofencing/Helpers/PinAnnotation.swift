@@ -16,9 +16,9 @@ class PinAnnotation: NSObject, MKAnnotation {
     var title: String?
     var subtitle: String?
     let coordinate: CLLocationCoordinate2D
-    let identifier: UUID
+    let identifier: String
     
-    init(identifier: UUID, coordinate: CLLocationCoordinate2D, title: String? = nil, subtitle: String? = nil) {
+    init(identifier: String, coordinate: CLLocationCoordinate2D, title: String? = nil, subtitle: String? = nil) {
         self.identifier = identifier
         self.title = title
         self.subtitle = subtitle

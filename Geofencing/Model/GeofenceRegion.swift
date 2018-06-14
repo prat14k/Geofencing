@@ -15,13 +15,14 @@ import MapKit
 
 @objcMembers class GeofenceRegion: Object {
     dynamic var radius: Double = 0
-    dynamic let identifier = UUID()
+    dynamic var identifier: String = ""
     dynamic var note: String?
     dynamic var eventType: EventType = .entry
     dynamic var location: Location!
     
-    convenience init(coordinate: CLLocationCoordinate2D, radius: Double, eventType: EventType, note: String? = nil) {
+    convenience init(identifier: String, coordinate: CLLocationCoordinate2D, radius: Double, eventType: EventType, note: String? = nil) {
         self.init()
+        self.identifier = identifier
         self.location = Location(coordinate: coordinate)
         self.radius = radius
         self.note = note

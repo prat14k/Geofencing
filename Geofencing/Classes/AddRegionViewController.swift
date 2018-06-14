@@ -62,7 +62,7 @@ extension AddRegionViewController {
               let radius = Double(radiusTextField.text ?? "0"),
               radius > 0
         else {
-            presentAlert(title: "No monitoring point selected", message: "Please either select entry or exit monitoring states or both")
+            presentAlert(title: "All required fields not filled", message: "Please check whether you have provided appropriate values for region center(click on the map to select one), monitoring state(entry or exit) and radius for the region")
             return false
         }
         return true
@@ -74,8 +74,8 @@ extension AddRegionViewController {
     }
     
     private func saveGeofenceInStorage(coordinate: CLLocationCoordinate2D, radius: Double) {
-        guard isLocationPermissionProvided  else { return presentAlert(title: "Location Premissions Denied", message: "Please provide the location permissions") }
-        let geofenceRegion = GeofenceRegion(coordinate: selectedLocation.coordinate, radius: radius, eventType: events, note: noteTextView.text)
+        guard isLocationPermissionProvided  else { return presentAlert(title: "Location Premissions Denied", message: "Please provide the Always location permission") }
+        let geofenceRegion = GeofenceRegion(identifier: UUID().uuidString, coordinate: selectedLocation.coordinate, radius: radius, eventType: events, note: noteTextView.text)
         do {
             try RealmService.shared.create(object: geofenceRegion)
             delegate?.savedGeofence(region: geofenceRegion)
@@ -115,6 +115,13 @@ extension AddRegionViewController {
 
 
 extension AddRegionViewController {
+    
+    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        if let location = locations.first {
+            currentLocation = location
+            mapView.showsUserLocation = true
+        }
+    }
     
     @IBAction private func closeViewController() {
         navigationController?.popViewController(animated: true)

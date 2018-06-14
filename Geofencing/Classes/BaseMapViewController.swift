@@ -9,19 +9,12 @@
 import UIKit
 import CoreLocation
 
-class BaseMapViewController: UIViewController {
+
+class BaseMapViewController: UIViewController, LocationManagerProtocol {
 
     var currentLocation: CLLocation!
     
-    lazy var locationManager: CLLocationManager = {
-        let manager = CLLocationManager()
-        manager.desiredAccuracy = kCLLocationAccuracyBest
-        manager.distanceFilter = 30
-        manager.delegate = self
-        return manager
-    }()
-    
-    
+    lazy var locationManager = create()
     var isLocationPermissionProvided: Bool { return CLLocationManager.authorizationStatus() == .authorizedAlways }
     
     
@@ -56,12 +49,6 @@ class BaseMapViewController: UIViewController {
 }
 
 extension BaseMapViewController: CLLocationManagerDelegate {
-    
-    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-        if let location = locations.first {
-            currentLocation = location
-        }
-    }
     
     func locationManager(_ manager: CLLocationManager, didChangeAuthorization status: CLAuthorizationStatus) {
         locationAuthStatusConfigure()
